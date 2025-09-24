@@ -5,6 +5,8 @@ import noteRouter from "./routes/notesRoute.js";
 
 const app = express();
 
+app.use(express.json());
+
 app.use(helloRoute);
 app.use(noteRouter);
 
