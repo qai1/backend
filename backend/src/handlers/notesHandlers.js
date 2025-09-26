@@ -104,3 +104,22 @@ export const updateNoteByIdHandler = async (req, res) => {
     data: notes[0],
   });
 };
+
+// Menghapus catatan berdasarkan ID
+export const deleteNoteByIdHandler = async (req, res) => {
+  const { id } = req.params;
+
+  const [deleteNote] = await pool.query("DELETE FROM notes WHERE id = ?", [id]);
+
+  if (deleteNote.affectedRows === 0) {
+    return res.status(404).json({
+      status: "fail",
+      message: "Cannot find note",
+    });
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Note deleted",
+  });
+};
