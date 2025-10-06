@@ -1,26 +1,78 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
   const [notes, setNotes] = useState([]);
 
-  const addNote = (title, content) => {
-    console.log(title);
-    console.log(content);
-    setNotes([]);
+  const fetchNotes = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/notes");
+
+      const result = await res.json();
+
+      setNotes(result.data);
+    } catch (error) {
+      console.error("Error", error);
+    }
   };
 
-  const handleDelete = (id) => {
-    console.log(id);
+  useEffect(() => {
+    fetchNotes();
+  }, []);
+
+  const addNote = async (newTitle, newContent) => {
+    try {
+      const res = await fetch("http://localhost:3000/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle, content: newContent }),
+      });
+
+      const result = res.json();
+
+      if (res.ok) {
+        setNotes(...notes, result.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleUpdateNote = async (id, updateTitle, updateContent) => {
+    try {
+      const res = await fetch(`http://localhost:3000/notes/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: updateTitle, content: updateContent }),
+      });
+
+      const result = await res.json();
+
+      setNotes((prevNotes) => {
+        return prevNotes.map((note) => (note.id === id ? result.data : note));
+      });
+
+      console.log(result.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:3000/notes/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setNotes((notes) => notes.filter((note) => note.id !== id));
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const getNoteById = (id) => {
     console.log(id);
-  };
-
-  const updateNote = (id, newTitle, newContent) => {
-    console.log(id);
-    console.log(newTitle);
-    console.log(newContent);
   };
 
   return (
@@ -31,7 +83,7 @@ function App() {
         <NoteList
           notes={notes}
           onDelete={handleDelete}
-          onUpdate={updateNote}
+          onUpdate={handleUpdateNote}
           onGetById={getNoteById}
         />
       </main>
@@ -94,30 +146,82 @@ const NoteForm = ({ onAddNote }) => {
 };
 
 const NoteItem = ({ note, onDelete, onUpdate }) => {
-  console.log(note);
-  console.log(onDelete);
-  console.log(onUpdate);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(note.title);
+  const [editContent, setEditContent] = useState(note.content);
+
+  const handleCancel = () => {
+    setEditTitle(note.title);
+    setEditContent(note.content);
+    setIsEditing(false);
+  };
 
   return (
     <div className="rounded-lg shadow-md bg-white w-[300px] p-5">
-      <p className="font-medium text-xl">{note.title}</p>
-      <p className="text-sm text-gray-500">
-        ~{showFormattedDate(note.createAt)}
-      </p>
-      <p className="mt-2">{note.content}</p>
-      <div className="mt-4 flex gap-2">
-        <button className="bg-yellow-500 text-white px-3 py-1 rounded">
-          Edit
-        </button>
-        <button className="bg-red-500 text-white px-3 py-1 rounded">
-          Delete
-        </button>
-      </div>
+      {isEditing ? (
+        <>
+          {""}
+          <input
+            value={editTitle}
+            type="text"
+            placeholder="Title"
+            className="w-full rounded-sm outline outline-gray-400 p-2"
+            onChange={(e) => setEditTitle(e.target.value)}
+          />
+          <textarea
+            value={editContent}
+            type="text"
+            placeholder="Content"
+            className="w-full rounded-sm outline outline-gray-400 p-2 mt-2"
+            onChange={(e) => setEditContent(e.target.value)}
+          />
+
+          <div className="my-4 flex gap-2">
+            <button
+              className="bg-yellow-500 text-white px-3 py-1 rounded"
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-green-500 text-white px-3 py-1 rounded"
+              onClick={() => {
+                onUpdate(note.id, editTitle, editContent);
+                setIsEditing(false);
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="font-medium text-xl">{note.title}</p>
+          <p className="text-sm text-gray-500">
+            ~{showFormattedDate(note.created_at)}
+          </p>
+          <p className="mt-2">{note.content}</p>
+          <div className="mt-4 flex gap-2">
+            <button
+              className="bg-yellow-500 text-white px-3 py-1 rounded"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit
+            </button>
+            <button
+              className="bg-red-500 text-white px-3 py-1 rounded"
+              onClick={() => onDelete(note.id)}
+            >
+              Delete
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
-const NoteList = ({ notes }) => {
+const NoteList = ({ notes, onUpdate, onDelete }) => {
   return (
     <section className="container py-8">
       <h2 className="inline-flex items-center gap-2 text-2xl font-medium mb-6">
@@ -126,7 +230,14 @@ const NoteList = ({ notes }) => {
       </h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {notes.length > 0 ? (
-          notes.map((note) => <NoteItem key={note.id} note={note} />)
+          notes.map((note) => (
+            <NoteItem
+              key={note.id}
+              note={note}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+            />
+          ))
         ) : (
           <h1>Data Kosong</h1>
         )}
