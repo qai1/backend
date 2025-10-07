@@ -29,10 +29,10 @@ function App() {
         body: JSON.stringify({ title: newTitle, content: newContent }),
       });
 
-      const result = res.json();
+      const result = await res.json();
 
       if (res.ok) {
-        setNotes(...notes, result.data);
+        setNotes((prevNotes) => [...prevNotes, result.data]);
       }
     } catch (error) {
       console.error(error);
