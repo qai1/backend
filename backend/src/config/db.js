@@ -4,7 +4,7 @@ export const pool = mysql2.createPool({
   host: "sql12.freesqldatabase.com",
   user: "sql12801507",
   password: "Fmaz7nISD2",
-  database: "notes_app",
+  database: "sql12801507",
   waitForConnections: true,
   connectionLimit: 5,
   queueLimit: 0,
