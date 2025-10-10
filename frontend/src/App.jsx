@@ -80,17 +80,17 @@ function App() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-white flex flex-col pt-24 items-center">
-        <h1 className="py-10 text-6xl font-semibold">QaiNotes</h1>
-        <div className="w-full flex flex-col items-center">
+      <main className="min-h-screen bg-gray-100 flex flex-col pt-24 items-center">
+        <div className="bg-white w-[600px] mt-20 flex flex-col items-center shadow-md rounded-2xl">
+          <h1 className="py-10 text-6xl font-semibold">QaiNotes</h1>
           <NoteForm onAddNote={addNote} />
-          <NoteList
-            notes={notes}
-            onDelete={handleDelete}
-            onUpdate={handleUpdateNote}
-            onGetById={getNoteById}
-          />
         </div>
+        <NoteList
+          notes={notes}
+          onDelete={handleDelete}
+          onUpdate={handleUpdateNote}
+          onGetById={getNoteById}
+        />
       </main>
     </>
   );
