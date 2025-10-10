@@ -80,14 +80,17 @@ function App() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen flex flex-col mt-24 items-center">
-        <NoteForm onAddNote={addNote} />
-        <NoteList
-          notes={notes}
-          onDelete={handleDelete}
-          onUpdate={handleUpdateNote}
-          onGetById={getNoteById}
-        />
+      <main className="min-h-screen bg-white flex flex-col pt-24 items-center">
+        <h1 className="py-10 text-6xl font-semibold">QaiNotes</h1>
+        <div className="w-full flex flex-col items-center">
+          <NoteForm onAddNote={addNote} />
+          <NoteList
+            notes={notes}
+            onDelete={handleDelete}
+            onUpdate={handleUpdateNote}
+            onGetById={getNoteById}
+          />
+        </div>
       </main>
     </>
   );
@@ -101,7 +104,7 @@ const Navbar = () => {
   return (
     <nav className="w-full fixed top-0 flex justify-center bg-white shadow">
       <div className="flex justify-between px-5 py-5 container">
-        <img src="/logo.svg" alt="Logo" />
+        <img src="/qailogo2.svg" alt="Logo" className="h-10" />
       </div>
     </nav>
   );
@@ -151,6 +154,7 @@ const NoteItem = ({ note, onDelete, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(note.title);
   const [editContent, setEditContent] = useState(note.content);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleCancel = () => {
     setEditTitle(note.title);
@@ -162,7 +166,6 @@ const NoteItem = ({ note, onDelete, onUpdate }) => {
     <div className="rounded-lg shadow-md bg-white w-[300px] p-5">
       {isEditing ? (
         <>
-          {""}
           <input
             value={editTitle}
             type="text"
@@ -172,7 +175,6 @@ const NoteItem = ({ note, onDelete, onUpdate }) => {
           />
           <textarea
             value={editContent}
-            type="text"
             placeholder="Content"
             className="w-full rounded-sm outline outline-gray-400 p-2 mt-2"
             onChange={(e) => setEditContent(e.target.value)}
@@ -203,6 +205,7 @@ const NoteItem = ({ note, onDelete, onUpdate }) => {
             ~{showFormattedDate(note.created_at)}
           </p>
           <p className="mt-2">{note.content}</p>
+
           <div className="mt-4 flex gap-2">
             <button
               className="bg-yellow-500 text-white px-3 py-1 rounded"
@@ -210,12 +213,30 @@ const NoteItem = ({ note, onDelete, onUpdate }) => {
             >
               Edit
             </button>
-            <button
-              className="bg-red-500 text-white px-3 py-1 rounded"
-              onClick={() => onDelete(note.id)}
-            >
-              Delete
-            </button>
+
+            {!confirmDelete ? (
+              <button
+                className="bg-red-500 text-white px-3 py-1 rounded"
+                onClick={() => setConfirmDelete(true)}
+              >
+                Delete
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  className="bg-gray-400 text-white px-3 py-1 rounded"
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-red-500 text-white px-3 py-1 rounded"
+                  onClick={() => onDelete(note.id)}
+                >
+                  Confirm
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
